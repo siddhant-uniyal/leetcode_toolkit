@@ -1,11 +1,9 @@
 const exchangeToken = async (): Promise<void> => {
     const storedObj = await browser.storage.local.get("latestCSRFToken")
-    console.log(storedObj)
     const storedState = storedObj["latestCSRFToken"] as string
     const urlParams = new URLSearchParams(window.location.search);
     const code = urlParams.get("code")
     const state = urlParams.get("state")
-    console.log(code, state, storedState)
     if ((code && state) && (storedState === state)) {
         fetch("https://github.com/login/oauth/access_token", {
             method: "POST",
