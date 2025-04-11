@@ -46,7 +46,6 @@ const extractRequestData = (requestDetails : browser.webRequest._OnBeforeRequest
             //have multiple chunks , data[0] had all of it. data length at the end was 1.
             const res = JSON.parse(decoded)
             requests.set(String(res["submission_id"]) , payload)
-            console.log(requests)
         }
         catch(e){
             console.error(`Error in extractRequestData : ${e}`)
@@ -78,7 +77,7 @@ const extractResponseData = (requestDetails : browser.webRequest._OnBeforeReques
             requests.delete(obj["submission_id"])
         }
         catch(e){
-            console.error(`Error in extractRequestData : ${e}`)
+            console.error(`Error in extractResponseData : ${e}`)
         }
     }
 }
@@ -97,9 +96,11 @@ const startPush = async (requestPayload : RequestPayloadType , responseBody : Re
     const ext = extRes["data"] as string
     const accessToken = await browser.storage.local.get("access_token")
     const formData = await browser.storage.local.get("formData")
-    console.log("in extract data : " , accessToken , " " , formData)
     if("formData" in formData){
         const formDataObj = JSON.parse(formData["formData"]);
+        if("access_token" in accessToken){
+            mainPush(formDataObj["repo-path"], accessToken["access_token"] , formDataObj["push-behaviour"], problemID, problemSlug, typedCode, ext, memBeat, timeBeat);
+        }
         if(formDataObj["save-local"] === "yes"){
             const file = new Blob([typedCode], { type: 'text/plain' });
             const fileURL = URL.createObjectURL(file);
@@ -108,11 +109,8 @@ const startPush = async (requestPayload : RequestPayloadType , responseBody : Re
                 saveAs: true,
                 url: fileURL
             };
-            browser.downloads.download(payload)
+            await browser.downloads.download(payload)
             URL.revokeObjectURL(fileURL)
-        }
-        if("access_token" in accessToken){
-            mainPush(formDataObj["repo-path"], accessToken["access_token"] , formDataObj["push-behaviour"], problemID, problemSlug, typedCode, ext, memBeat, timeBeat);
         }
     }
 

@@ -12,6 +12,8 @@ type FormType = {
   "dir-input": string;
 };
 
+const REPO_LINK_PATTERN = /https:\/\/github\.com\/[a-zA-Z0-9]+(-[a-zA-Z0-9]+)*\/[\w\.\-]+/
+
 const Options = () => {
 
   const okSubmitRef = useRef<HTMLHeadingElement>(null);
@@ -20,11 +22,11 @@ const Options = () => {
     register,
     handleSubmit,
     formState: { errors },
-    watch,
+    // watch,
     reset,
   } = useForm<FormType>();
 
-  const selectedSaveLocal = watch("save-local");
+  // const selectedSaveLocal = watch("save-local");
 
   const notify = () =>
     toast.success("Settings saved successfully!", {
@@ -45,8 +47,8 @@ const Options = () => {
 
   const onSubmit = async (data: FieldValues) => {
     Object.entries(data).forEach(async ([key, value]) => {
-      const nvalue = key === "dir-input" && selectedSaveLocal === "no" ? "" : value.toString();
-      data[key] = nvalue
+      // const nvalue = key === "dir-input" && selectedSaveLocal === "no" ? "" : value.toString();
+      data[key] = value
     });
     await browser.storage.local.set({"formData" : JSON.stringify(data)});
     notify();
@@ -69,8 +71,7 @@ const Options = () => {
             {...register("repo-path", {
             required: "Repository path is required",
             pattern: {
-                value:
-                /https:\/\/github\.com\/[a-zA-Z0-9]+(-[a-zA-Z0-9]+)*\/[\w\.\-]+/,
+                value: REPO_LINK_PATTERN,
                 message: `Repository link must be of the form : https://github.com/user/repo . Username may only contain alphanumeric characters or single hyphens, and cannot begin or end with a hyphen. The repository name can only contain ASCII letters, digits, and the characters ., -, and _.`,
             },
             })}
@@ -153,7 +154,7 @@ const Options = () => {
             ></input>
             <label htmlFor="yes">Yes</label>
             </div>
-            {selectedSaveLocal === "yes" && (
+            {/* {selectedSaveLocal === "yes" && (
             <div id="dir-input-div">
 
                 <label htmlFor="dir-input-box">Local directory</label>
@@ -162,10 +163,6 @@ const Options = () => {
                 <input
                 {...register("dir-input", {
                     required: "Local directory is required",
-                    pattern: {
-                    value: /this/g,
-                    message: "Local directory must be valid",
-                    },
                 })}
                 type="text"
                 id="dir-input-box"
@@ -180,7 +177,7 @@ const Options = () => {
                 </>
                 )}
             </div>
-            )}
+            )} */}
         </div>
 
         <div className="radio-div">
