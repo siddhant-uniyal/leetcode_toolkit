@@ -69,11 +69,12 @@ const extractResponseData = (requestDetails : browser.webRequest._OnBeforeReques
         try{
             const decoded = decoder.decode(data[0])
             const obj = JSON.parse(decoded)
-            console.log(obj)
             if(!obj["submission_id"] || !requests.get(obj["submission_id"])){
                 throw new Error(`Submission hasn't completed OR no corresponding request is stored`)
             } 
-            startPush(requests.get(obj["submission_id"]) , obj)
+            if(obj["status_msg"] === "Accepted"){
+                startPush(requests.get(obj["submission_id"]) , obj)
+            }
             requests.delete(obj["submission_id"])
         }
         catch(e){
@@ -82,36 +83,40 @@ const extractResponseData = (requestDetails : browser.webRequest._OnBeforeReques
     }
 }
 const startPush = async (requestPayload : RequestPayloadType , responseBody : ResponseBodyType) => {
-    const requestURL = requestPayload["requestURL"]
-    const typedCode = requestPayload["typedCode"]
-    const problemSlug = requestURL.match(BETWEEN_SLASHES_PATTERN)?.at(-2) as string;
-    const problemID = responseBody["question_id"];
-    const memBeat = String(Math.round(responseBody["memory_percentile"]));
-    const timeBeat = String(Math.round(responseBody["runtime_percentile"]));
-    const extRes = getExtension(responseBody["lang"]);
-    if(extRes["success"] === false){
-        console.error(`Error in extractRequestData : ${extRes["message"]}`)
-        return
+    try {
+        const requestURL = requestPayload["requestURL"]
+        const typedCode = requestPayload["typedCode"]
+        const problemSlug = requestURL.match(BETWEEN_SLASHES_PATTERN)?.at(-2) as string;
+        const problemID = responseBody["question_id"];
+        const memBeat = String(Math.round(responseBody["memory_percentile"]));
+        const timeBeat = String(Math.round(responseBody["runtime_percentile"]));
+        const extRes = getExtension(responseBody["lang"]);
+        if (extRes["success"] === false) {
+            throw new Error(`Error in extractRequestData : ${extRes["message"]}`)
+        }
+        const ext = extRes["data"] as string
+        const accessToken = await browser.storage.local.get("access_token")
+        const formData = await browser.storage.local.get("formData")
+        if ("formData" in formData) {
+            const formDataObj = JSON.parse(formData["formData"]);
+            if ("access_token" in accessToken) {
+                mainPush(formDataObj["repo-path"], accessToken["access_token"], formDataObj["push-behaviour"], problemID, problemSlug, typedCode, ext, memBeat, timeBeat);
+            }
+            if (formDataObj["save-local"] === "yes") {
+                const file = new Blob([typedCode], { type: 'text/plain' });
+                const fileURL = URL.createObjectURL(file);
+                const payload = {
+                    filename: `${problemID}-${problemSlug}.${ext}`,
+                    saveAs: true,
+                    url: fileURL
+                };
+                await browser.downloads.download(payload)
+                URL.revokeObjectURL(fileURL)
+            }
+        }
     }
-    const ext = extRes["data"] as string
-    const accessToken = await browser.storage.local.get("access_token")
-    const formData = await browser.storage.local.get("formData")
-    if("formData" in formData){
-        const formDataObj = JSON.parse(formData["formData"]);
-        if("access_token" in accessToken){
-            mainPush(formDataObj["repo-path"], accessToken["access_token"] , formDataObj["push-behaviour"], problemID, problemSlug, typedCode, ext, memBeat, timeBeat);
-        }
-        if(formDataObj["save-local"] === "yes"){
-            const file = new Blob([typedCode], { type: 'text/plain' });
-            const fileURL = URL.createObjectURL(file);
-            const payload = {
-                filename: `${problemID}-${problemSlug}.${ext}`,
-                saveAs: true,
-                url: fileURL
-            };
-            await browser.downloads.download(payload)
-            URL.revokeObjectURL(fileURL)
-        }
+    catch (err) {
+        console.error(`Error in startPush : ${(err as Error).message}`)
     }
 
 }
