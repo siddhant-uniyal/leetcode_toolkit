@@ -1,4 +1,5 @@
 import { createFile } from "./ghFile"
+import { logError } from "./logError"
 
 const URL = "https://api.github.com"
 
@@ -70,8 +71,8 @@ export const createRepoIfNotExist = async (owner  : string , repo  : string , to
             "success" : true
         }          
     }
-    catch(e){
-        console.error("Error in createRepoIfNotExist: " , e)
+    catch(err){
+        logError("Error in createRepoIfNotExist" , err)
         return {
             "message" : "repo-check-server-error",
             "data" : null,

@@ -2,6 +2,7 @@ import { getMetadata } from "./getMetadata.ts"
 import { createFile } from "./ghFile.js"
 import { deleteFolder, isFolderExist } from "./ghFolder.ts"
 import { createRepoIfNotExist } from "./ghRepo.ts"
+import { logError } from "./logError.ts"
 
 const BETWEEN_SLASHES_PATTERN = /(?<=\/)([^\/]+)(?=\/)/g 
 
@@ -24,8 +25,8 @@ export const createFilesUtil = async(owner : string , repo : string , accessToke
             "success" : true
         }
     }
-    catch(e){
-        console.error(`Error in createFilesUtil : ${e}`)
+    catch(err){
+        logError("Error in createFilesUtil" , err)
         return {
             "message" : "create-files-server-error",
             "data" : null,
@@ -133,7 +134,7 @@ export async function mainPush(repoPath  : string , accessToken  : string , push
     const metadataRes = await getMetadata(problemSlug)
 
     if(metadataRes["success"] === false || metadataRes["data"] === null){
-        console.error(`Error in mainPush : ${metadataRes.message}`)
+        logError("Error in mainPush" , new Error(metadataRes.message))
         return
     }
     const [problemTitle , problemMarkdown , problemTag] = metadataRes["data"] as string[]
@@ -143,7 +144,7 @@ export async function mainPush(repoPath  : string , accessToken  : string , push
     const checkRepoRes = await createRepoIfNotExist(owner , repo , accessToken)
 
     if(checkRepoRes["success"] === false){
-        console.error(`Error in mainPush : ${checkRepoRes.message}`)
+        logError("Error in mainPush" , new Error(checkRepoRes.message))
         return
     }
 

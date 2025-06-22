@@ -1,4 +1,5 @@
 import { z } from "zod"
+import { logError } from "./logError";
 
 export const isFolderExist = async(owner : string , repo  : string, accessToken : string, folderPath : string)  => {
     try{
@@ -38,8 +39,8 @@ export const isFolderExist = async(owner : string , repo  : string, accessToken 
         }
 
     }
-    catch(e){
-        console.error(`Error in isFolderExist : ${e}`)
+    catch(err){
+        logError("Error in isFolderExist" , err)
         return {
             "message" : "is-folder-exist-server-error",
             "data" : null,
@@ -87,8 +88,8 @@ export const deleteFolder = async (owner : string, repo : string, folderPath : s
             "success" : true
         }
     }
-    catch(e){
-        console.error(`Error in deleteFolder : ${e}`)
+    catch(err){
+        logError("Error in deleteFolder" , err)
         return {
             "message" : "delete-folder-server-error",
             "data" : null,

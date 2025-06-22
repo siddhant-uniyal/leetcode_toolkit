@@ -1,3 +1,5 @@
+import { logError } from "./logError";
+
 export const getMetadata = async (problemSlug : string) => {
   console.log("Fetching metadata for: " + problemSlug);
   try{
@@ -49,8 +51,8 @@ export const getMetadata = async (problemSlug : string) => {
         "success" : true
     }
   }
-  catch(e){
-    console.error(`Error while fetching metadata: ${e}`)
+  catch(err){
+    logError("Error while fetching metadata" , err)
     return {
         "message" : "get-metadata-server-error",
         "data" : null,

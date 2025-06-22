@@ -1,5 +1,6 @@
 import { mainPush } from "./utils/ghPush.ts";
 import { getExtension } from "./utils/getExtension.ts";
+import { logError } from "./utils/logError.ts";
 
 const BETWEEN_SLASHES_PATTERN = /(?<=\/)([^\/]+)(?=\/)/g; 
 
@@ -49,12 +50,12 @@ const extractRequestData = (requestDetails: browser.webRequest._OnBeforeRequestD
                 requests.set(String(res["submission_id"]), payload)
             }
             catch (err) {
-                console.error(`Error in extractRequestData : ${(err as Error).message}`)
+                logError("Error in extractRequestData" , err)
             }
         }
     }
     catch (err) {
-        console.error(`Error in extractRequestData : ${(err as Error).message}`)
+        logError("Error in extractRequestData" , err)
     }
 }
 
@@ -82,13 +83,13 @@ const extractResponseData = (requestDetails: browser.webRequest._OnBeforeRequest
                 }
                 requests.delete(obj["submission_id"])
             }
-            catch (e) {
-                console.error(`Error in extractResponseData : ${e}`)
+            catch (err) {
+                logError("Error in extractResponseData" , err)
             }
         }
     }
     catch (err) {
-        console.error(`Error in extractResponseData : ${(err as Error).message}`)
+        logError("Error in extractResponseData" , err)
     }
 }
 const startPush = async (requestPayload : RequestPayloadType , responseBody : ResponseBodyType) => {
@@ -125,7 +126,7 @@ const startPush = async (requestPayload : RequestPayloadType , responseBody : Re
         }
     }
     catch (err) {
-        console.error(`Error in startPush : ${(err as Error).message}`)
+        logError("Error in startPush" , err)
     }
 
 }

@@ -1,3 +1,5 @@
+import { logError } from "./logError"
+
 const langToExt : Record<string,string> = {
   "python" : "py",
   "python3" : "py",
@@ -24,7 +26,7 @@ export const getExtension = (language : string) => {
         "success" : true
       }
     }
-    console.error(`Error in getExtension : extension for specified language is undefined`)
+    logError("Error in getExtension" , new Error("extension for specified language is undefined"))
     return {
       "message" : "get-extension-error",
       "data" : null,

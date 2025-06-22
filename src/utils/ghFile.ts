@@ -1,3 +1,5 @@
+import { logError } from "./logError";
+
 export const createFile = async (owner : string , repo : string , accessToken : string , filePath : string , fileContent : string , commitMessage : string) => {
     try{
         const printPath = `${repo}/${filePath}`
@@ -25,8 +27,8 @@ export const createFile = async (owner : string , repo : string , accessToken : 
             "success" : true
         }
     }
-    catch(e){
-        console.error(`Error in createFile: ${e}`)
+    catch(err){
+        logError(`Error in createFile` , err)
         return {
             "message" : "create-file-server-error",
             "data" : null,
