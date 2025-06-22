@@ -19,67 +19,76 @@ type ResponseBodyType = {
     "question_id" : string
 }
 
-const extractRequestData = (requestDetails : browser.webRequest._OnBeforeRequestDetails) => {
-    if(!requestDetails?.requestBody?.raw) return
-    const rawData = requestDetails.requestBody.raw[0].bytes;
-    const uint8array = decoder.decode(rawData);
-    const obj = JSON.parse(uint8array);
-    const payload : RequestPayloadType = {
-        "requestURL" : requestDetails.url,
-        "typedCode" : obj["typed_code"],
-    }
-    const filter = browser.webRequest.filterResponseData(requestDetails.requestId);
-
-    const data : ArrayBuffer[] = []
-
-    filter.ondata = event => {
-        data.push(event.data)
-        filter.write(event.data)
-    }
-
-    filter.onstop = () => {
-        filter.disconnect()
-        try{
-            // console.log("DATA SIZE IS " , data.length)
-            const decoded = decoder.decode(data[0]) //why in filter.onstop() ? filter.ondata is async. listens for each chunk. so , placing this code below
-            //immediately runs it , so it has empty data. inside onstop , guaranteed to have the complete data. also , here there was no need to
-            //have multiple chunks , data[0] had all of it. data length at the end was 1.
-            const res = JSON.parse(decoded)
-            requests.set(String(res["submission_id"]) , payload)
+const extractRequestData = (requestDetails: browser.webRequest._OnBeforeRequestDetails) => {
+    try {
+        if (!requestDetails?.requestBody?.raw) return
+        const rawData = requestDetails.requestBody.raw[0].bytes;
+        const uint8array = decoder.decode(rawData);
+        const obj = JSON.parse(uint8array);
+        const payload: RequestPayloadType = {
+            "requestURL": requestDetails.url,
+            "typedCode": obj["typed_code"],
         }
-        catch(e){
-            console.error(`Error in extractRequestData : ${e}`)
+        const filter = browser.webRequest.filterResponseData(requestDetails.requestId);
+
+        const data: ArrayBuffer[] = []
+
+        filter.ondata = event => {
+            data.push(event.data)
+            filter.write(event.data)
+        }
+
+        filter.onstop = () => {
+            filter.disconnect()
+            try {
+                // console.log("DATA SIZE IS " , data.length)
+                const decoded = decoder.decode(data[0]) //why in filter.onstop() ? filter.ondata is async. listens for each chunk. so , placing this code below
+                //immediately runs it , so it has empty data. inside onstop , guaranteed to have the complete data. also , here there was no need to
+                //have multiple chunks , data[0] had all of it. data length at the end was 1.
+                const res = JSON.parse(decoded)
+                requests.set(String(res["submission_id"]), payload)
+            }
+            catch (err) {
+                console.error(`Error in extractRequestData : ${(err as Error).message}`)
+            }
         }
     }
-
+    catch (err) {
+        console.error(`Error in extractRequestData : ${(err as Error).message}`)
+    }
 }
 
-const extractResponseData = (requestDetails : browser.webRequest._OnBeforeRequestDetails) => {
-    const filter = browser.webRequest.filterResponseData(requestDetails.requestId);
+const extractResponseData = (requestDetails: browser.webRequest._OnBeforeRequestDetails) => {
+    try {
+        const filter = browser.webRequest.filterResponseData(requestDetails.requestId);
 
-    const data : ArrayBuffer[] = []
+        const data: ArrayBuffer[] = []
 
-    filter.ondata = event => {
-        data.push(event.data)
-        filter.write(event.data)
-    }
+        filter.ondata = event => {
+            data.push(event.data)
+            filter.write(event.data)
+        }
 
-    filter.onstop = () => {
-        filter.disconnect()
-        try{
-            const decoded = decoder.decode(data[0])
-            const obj = JSON.parse(decoded)
-            if(!obj["submission_id"] || !requests.get(obj["submission_id"])){
-                throw new Error(`Submission hasn't completed OR no corresponding request is stored`)
-            } 
-            if(obj["status_msg"] === "Accepted"){
-                startPush(requests.get(obj["submission_id"]) , obj)
+        filter.onstop = () => {
+            filter.disconnect()
+            try {
+                const decoded = decoder.decode(data[0])
+                const obj = JSON.parse(decoded)
+                if (!obj["submission_id"] || !requests.get(obj["submission_id"])) {
+                    throw new Error(`Submission hasn't completed OR no corresponding request is stored`)
+                }
+                if (obj["status_msg"] === "Accepted") {
+                    startPush(requests.get(obj["submission_id"]), obj)
+                }
+                requests.delete(obj["submission_id"])
             }
-            requests.delete(obj["submission_id"])
+            catch (e) {
+                console.error(`Error in extractResponseData : ${e}`)
+            }
         }
-        catch(e){
-            console.error(`Error in extractResponseData : ${e}`)
-        }
+    }
+    catch (err) {
+        console.error(`Error in extractResponseData : ${(err as Error).message}`)
     }
 }
 const startPush = async (requestPayload : RequestPayloadType , responseBody : ResponseBodyType) => {
