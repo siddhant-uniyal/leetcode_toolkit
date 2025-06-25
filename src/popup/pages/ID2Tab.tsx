@@ -29,17 +29,13 @@ const ID2Tab = () => {
 
   useEffect(() => {
 
+    const input = inputRef.current
+    const button = buttonRef.current
+
     //firefox issue , opening browser action with shortcut gives weird behaviour. so add delay
     const timeout = setTimeout(() => {
       inputRef.current?.focus();
     }, 50);
-
-    const input = inputRef.current
-    const button = buttonRef.current
-
-    console.log(`ON MOUNT INPUT:  ${ input }`)
-
-    input?.focus()
 
     const handleEnter = (e : KeyboardEvent) => {
       if(e.key === "Enter"){
