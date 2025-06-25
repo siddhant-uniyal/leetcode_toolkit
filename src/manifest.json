@@ -2,7 +2,7 @@
   "description": "Open problems with their ID , save your submissions on local and GitHub , and much more!",
   "manifest_version": 2,
   "name": "Leetcode Toolkit",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "permissions": [
     "webRequest",
     "webRequestBlocking",
