@@ -17,6 +17,10 @@ const createQuery = (problemId: string) => ({
   variables: `{"categorySlug":"all-code-essentials","skip":0,"filters":{"searchKeywords":"${problemId}"}}`,
 });
 
+const isValidProblemID = (problemID: string) => {
+  return Number.isInteger(Number(problemID)) && Number(problemID) > 0;
+}
+
 const ID2Tab = () => {
   const [problemID, setProblemID] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
@@ -55,7 +59,7 @@ const ID2Tab = () => {
   const getProblem = async () => {
     try {
       setErrorMessage("");
-      if (!/[1-9][0-9]*$|^$/g.test(problemID)) {
+      if (!problemID || problemID.trim().length === 0 || !isValidProblemID(problemID)) {
         setErrorMessage("Problem ID must be a whole number");
         return;
       }

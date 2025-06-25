@@ -16,7 +16,7 @@ export default defineConfig({
     ]
   })],
   build : {
-    outDir : "extension",
+    outDir : "extension1",
     rollupOptions : {
       input : {
         popup : path.resolve(__dirname , "src/popup/popup.html"),

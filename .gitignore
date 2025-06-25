@@ -13,6 +13,7 @@ dist-ssr
 *.local
 .env
 extension
+extension1
 source_code
 source_code.zip
 web-ext-artifacts
